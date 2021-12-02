@@ -1,7 +1,10 @@
 const validator = require('validator');
 const { celebrate, Joi } = require('celebrate');
+const { errorMessages } = require('../utils/constants');
 
-const isUrlCustomValidator = (value, helpers) => (validator.isURL(value) ? value : helpers.message('Это поле заполнено некорректно, ожидается URL') && false);
+const isUrlCustomValidator = (value, helpers) => (
+  validator.isURL(value) ? value : helpers.message(errorMessages.validationUrlErrorMessage)
+);
 
 module.exports.validateAddMovieToFavorite = celebrate({
   body: Joi.object().keys({

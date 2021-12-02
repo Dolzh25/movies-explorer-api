@@ -23,11 +23,13 @@ const createUser = (req, res, next) => {
       _id: user._id,
     }))
     .catch((err) => {
-      if (err.name === 'MongoServerError' && err.code === 11000) {
-        next(new ConflictError(errorMessages.emailConflictErrorMessage));
-      }
       if (err.name === 'ValidationError') {
         next(new BadRequestError(errorMessages.validationErrorMessage));
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'MongoServerError' && err.code === 11000) {
+        next(new ConflictError(errorMessages.emailConflictErrorMessage));
       } else {
         next(err);
       }
@@ -61,13 +63,7 @@ const getUserInfo = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError(errorMessages.validationErrorMessage));
-      } else if (err.statusCode === 404) {
-        next(new NotFoundError(err.message));
-      } else {
-        next(err);
-      }
+      next(new NotFoundError(err.message));
     });
 };
 

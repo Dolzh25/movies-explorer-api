@@ -11,6 +11,7 @@ const errorMessages = {
   ServerErrorMessage: 'Ошибка на сервере',
   corsErrorMessage: 'CORS: запрос на кросс-источник заблокирован',
   constraintErrorMessage: 'Конфликт данных',
+  validationUrlErrorMessage: 'Это поле заполнено некорректно, ожидается URL',
 };
 
 const serverMessages = {
