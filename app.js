@@ -16,20 +16,29 @@ const { errorMessages } = require('./utils/constants');
 const app = express();
 
 const corsOptions = {
-  origin: '*',
+  origin: [
+    'http://localhost:3000',
+    'http://dolzh-movies.nomoredomains.rocks',
+    'https://dolzh-movies.nomoredomains.rocks',
+  ],
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  allowedHeaders: ['Content-Type', 'origin', 'Authorization', 'Accept'],
   credentials: true,
 };
 
 mongoose.connect(config.mongo_dsn);
 
+app.use(requestLogger);
+app.use('*', cors(corsOptions));
+
+app.post(limiter);
+
 app.use(helmet());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(requestLogger);
-app.use(cors(corsOptions));
-app.post(limiter);
 
 app.use(router);
 
