@@ -18,8 +18,8 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'http://dolzh-movies.nomoredomains.rocks/',
-    'https://dolzh-movies.nomoredomains.rocks/',
+    'http://dolzh-movies.nomoredomains.rocks',
+    'https://dolzh-movies.nomoredomains.rocks',
   ],
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   credentials: true,
