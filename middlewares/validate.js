@@ -24,7 +24,7 @@ module.exports.validateAddMovieToFavorite = celebrate({
 
 module.exports.validateRemoveMovieFromFavorite = celebrate({
   params: Joi.object().keys({
-    movieId: Joi.string(),
+    movieId: Joi.string().hex(),
   }),
 });
 
