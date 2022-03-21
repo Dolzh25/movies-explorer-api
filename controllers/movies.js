@@ -54,7 +54,10 @@ const addMovieToFavorite = (req, res, next) => {
 const removeMovieFromFavorite = (req, res, next) => {
   const { movieId } = req.params;
 
-  Movie.findById(movieId)
+  Movie.findOne({
+    owner: req.user._id,
+    movieId,
+  })
     .then((movie) => {
       if (!movie) {
         next(new NotFoundError(errorMessages.notFoundErrorDBMessage));
