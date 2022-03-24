@@ -29,7 +29,7 @@ const corsOptions = {
 mongoose.connect(config.mongo_dsn);
 
 app.use(requestLogger);
-app.use('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.post(limiter);
 
