@@ -4,15 +4,14 @@ const config = require('../utils/config');
 const { errorMessages } = require('../utils/constants');
 
 module.exports = (req, res, next) => {
-  const { authorization } = req.headers;
+  const token = req.cookies.jwt;
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    next(new UnauthorizedError(errorMessages.authorizationErrorMessageJWT));
-    return;
+  if (!token) {
+    throw new UnauthorizedError(errorMessages.authorizationErrorMessageJWT);
   }
 
-  const token = authorization.replace('Bearer ', '');
   let payload;
+
   try {
     payload = jwt.verify(token, config.jwt_secret);
   } catch (error) {

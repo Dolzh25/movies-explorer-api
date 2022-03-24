@@ -59,6 +59,10 @@ const login = (req, res, next) => {
     });
 };
 
+const signOut = (req, res) => {
+  res.clearCookie('jwt').send({ message: 'Пользователь неавторизован' });
+};
+
 const getUserInfo = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
@@ -105,6 +109,7 @@ const updateUserInfo = (req, res, next) => {
 module.exports = {
   createUser,
   login,
+  signOut,
   getUserInfo,
   updateUserInfo,
 };
