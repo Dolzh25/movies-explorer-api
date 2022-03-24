@@ -16,14 +16,14 @@ const { errorMessages } = require('./utils/constants');
 
 const app = express();
 
-const corsOptions = {
-  origin: '*',
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  allowedHeaders: ['Content-Type', 'origin', 'Authorization'],
-  credentials: true,
-};
+// const corsOptions = {
+//   origin: '*',
+//   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+//   preflightContinue: false,
+//   optionsSuccessStatus: 204,
+//   allowedHeaders: ['Content-Type', 'origin', 'Authorization'],
+//   credentials: true,
+// };
 
 mongoose.connect(config.mongo_dsn);
 
@@ -32,7 +32,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 
 app.use(requestLogger);
-app.use('*', cors(corsOptions));
+app.use(cors());
 
 app.post(limiter);
 app.use(router);
