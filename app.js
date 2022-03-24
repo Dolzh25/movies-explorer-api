@@ -17,13 +17,7 @@ const { errorMessages } = require('./utils/constants');
 const app = express();
 
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://dolzh-movies.nomoredomains.rocks',
-    'https://dolzh-movies.nomoredomains.rocks',
-    'http://api.dolzh-movies.nomoredomains.rocks',
-    'https://api.dolzh-movies.nomoredomains.rocks',
-  ],
+  origin: '*',
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   preflightContinue: false,
   optionsSuccessStatus: 204,
