@@ -47,7 +47,12 @@ const login = (req, res, next) => {
         { expiresIn: '7d' },
       );
 
-      res.send({ token });
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24,
+        httpOnly: true,
+        sameSite: true,
+      })
+        .send({ message: 'Пользователь авторизован' });
     })
     .catch(() => {
       next(new UnauthorizedError(errorMessages.authorizationErrorMessageLogin));
