@@ -1,120 +1,98 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const BadRequestError = require('../errors/badRequestError');
-const NotFoundError = require('../errors/notFoundError');
-const UnauthorizedError = require('../errors/unauthorizedError');
-const ConflictError = require('../errors/conflictError');
-const config = require('../utils/config');
-const { errorMessages } = require('../utils/constants');
+const { SALT_ROUND, DEV_SECRET } = require('../utils/config');
+const NotFoundError = require('../errors/not-found-err');
+const ValidationError = require('../errors/validation-err');
+const UnauthorizedError = require('../errors/unauthorized-err');
+const ConflictError = require('../errors/conflict-err');
+const {
+  conflictErrorText,
+  userIdErrorText,
+  notFoundUserIdText,
+  updateUserErrorText,
+  unauthorizedErrorText,
+  createUserErrorText,
+  logOutMessage,
+} = require('../utils/constants');
 
-const createUser = (req, res, next) => {
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+module.exports.createUser = (req, res, next) => {
   const { email, password, name } = req.body;
-
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      email,
-      password: hash,
-      name,
-    }))
-    .then((user) => res.status(200).send({
-      email: user.email,
-      name: user.name,
-      _id: user._id,
-    }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(errorMessages.validationErrorMessage));
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'MongoServerError' && err.code === 11000) {
-        next(new ConflictError(errorMessages.emailConflictErrorMessage));
-      } else {
-        next(err);
-      }
-    });
+  bcrypt.hash(password, SALT_ROUND)
+    .then((hash) => User.create({ email, name, password: hash })
+      .then(({ _id }) => res.status(200).send({ email, name, _id }))
+      .catch((err) => {
+        if (err.name === 'ValidationError') {
+          next(new ValidationError(createUserErrorText));
+        }
+        if (err.name === 'MongoServerError' && err.code === 11000) {
+          next(new ConflictError(conflictErrorText));
+        }
+      }));
 };
 
-const login = (req, res, next) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        config.jwt_secret,
-        { expiresIn: '7d' },
+      res.cookie(
+        'jwt',
+        jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : DEV_SECRET, { expiresIn: '7d' }),
+        {
+          maxAge: 3600000 * 24 * 7, httpOnly: true, sameSite: 'none', secure: true,
+        },
       );
-
-      res.cookie('jwt', token, {
-        maxAge: 3600000 * 24,
-        httpOnly: true,
-        sameSite: true,
-      })
-        .send({ message: 'Пользователь авторизован' });
-    })
-    .catch(() => {
-      next(new UnauthorizedError(errorMessages.authorizationErrorMessageLogin));
-    });
-};
-
-const checkAuth = (req, res) => {
-  res.send({ message: 'authorization success' });
-};
-
-const signOut = (req, res) => {
-  res.clearCookie('jwt').send({ message: 'Пользователь неавторизован' });
-};
-
-const getUserInfo = (req, res, next) => {
-  User.findById(req.user._id)
-    .then((user) => {
-      if (!user) {
-        next(new NotFoundError(errorMessages.notFoundUserErrorMessage));
-      }
-      res.send(user);
-    })
-    .catch((err) => {
-      next(new NotFoundError(err.message));
-    });
-};
-
-const updateUserInfo = (req, res, next) => {
-  const { email, name } = req.body;
-
-  User.findOne({ email })
-    .then((user) => {
-      if (user) {
-        next(new ConflictError(errorMessages.emailConflictErrorMessage));
-      }
-    })
-    .then(() => {
-      User.findByIdAndUpdate(req.user._id, { email, name })
-        .then((user) => {
-          if (user) {
-            res.send(user);
-          }
-          return next(new NotFoundError(errorMessages.notFoundUserErrorMessage));
-        })
-        .catch((err) => {
-          if (err.name === 'ValidationError' || err.name === 'CastError') {
-            next(new BadRequestError(errorMessages.validationErrorMessage));
-          } else if (err.statusCode === 404) {
-            next(new NotFoundError(err.message));
-          } else {
-            next(err);
-          }
-        });
+      res.status(200).send({ message: req.cookies.jwt });
     })
     .catch(next);
 };
 
-module.exports = {
-  createUser,
-  login,
-  signOut,
-  checkAuth,
-  getUserInfo,
-  updateUserInfo,
+module.exports.logOut = (req, res, next) => {
+  try {
+    res.clearCookie('jwt', {
+      secure: true,
+      sameSite: 'none',
+    }).send({ message: logOutMessage });
+  } catch (err) {
+    next();
+  }
+};
+
+module.exports.getUser = (req, res, next) => {
+  User.findOne({ _id: req.user._id })
+    .then(({ email, name }) => res.send({ email, name }))
+    .catch(() => {
+      next(new UnauthorizedError(unauthorizedErrorText));
+    });
+};
+
+module.exports.updateUserProfile = (req, res, next) => {
+  const { email, name } = req.body;
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user || req.user._id === user.id) {
+        User.findByIdAndUpdate(req.user._id, { email, name }, { new: true, runValidators: true })
+          .then((curentUser) => {
+            if (curentUser) {
+              return res.send({ data: curentUser });
+            }
+            throw new NotFoundError(notFoundUserIdText);
+          })
+          .catch((err) => {
+            if (err.name === 'ValidationError') {
+              next(new ValidationError(updateUserErrorText));
+            }
+            if (err.name === 'CastError') {
+              next(new ValidationError(userIdErrorText));
+            }
+            next(err);
+          });
+      } else {
+        throw new ConflictError(conflictErrorText);
+      }
+    })
+    .catch(next);
 };

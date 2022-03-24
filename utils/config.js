@@ -1,5 +1,5 @@
-module.exports = {
-  mongo_dsn: process.env.MONGO_DSN || 'mongodb://localhost:27017/moviesdb',
-  port: process.env.PORT || 3000,
-  jwt_secret: process.env.JWT_SECRET || 'dev-secret-key',
-};
+const DATABASE = 'mongodb://localhost:27017/moviesdb';
+const SALT_ROUND = 10;
+const DEV_SECRET = 'big-scary-secret';
+
+module.exports = { DATABASE, SALT_ROUND, DEV_SECRET };

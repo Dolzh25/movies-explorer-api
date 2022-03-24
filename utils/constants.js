@@ -1,24 +1,31 @@
-const errorMessages = {
-  validationErrorMessage: 'Переданы некорректные данные',
-  emailConflictErrorMessage: 'Пользователь с таким e-mail уже существует',
-  authorizationErrorMessageJWT: 'Необходима авторизация',
-  authorizationErrorMessageLogin: 'Неправильный e-mail или пароль',
-  notFoundErrorDBMessage: 'Запрашиваемая запись не найдена',
-  forbiddenErrorMessage: 'Недостаточно прав для совершения действия',
-  notFoundOnSiteErrorMessage: 'Запрашиваемый ресурс не найден',
-  notFoundUserErrorMessage: 'Запрашиваемый пользователь не найден',
-  notFoundRouteErrorMessage: 'Запрашиваемый адрес не найден',
-  ServerErrorMessage: 'Ошибка на сервере',
-  corsErrorMessage: 'CORS: запрос на кросс-источник заблокирован',
-  constraintErrorMessage: 'Конфликт данных',
-  validationUrlErrorMessage: 'Это поле заполнено некорректно, ожидается URL',
-};
+const notFoundErrorText = 'Страница не найдена';
+const unauthorizedErrorText = 'Необходима авторизация';
+const incorrectData = 'Неправильные почта или пароль';
 
-const serverMessages = {
-  removeMovieSuccess: 'Запись о фильме удалена',
-};
+const castErrorText = 'Запрашиваемый фильм не найден';
+const validationErrorText = 'Неверно заполнены данные фильма';
+const notFoundMovieText = 'Фильма с таким id не существует';
+const forbiddenMovieText = 'Можно удалять фильмы только из своей библиотеки';
+
+const conflictErrorText = 'Пользователь с таким email уже существует';
+const userIdErrorText = 'Неверный Id пользователя';
+const notFoundUserIdText = 'Пользователя с таким id не существует';
+const updateUserErrorText = 'Переданы некорректные данные при обновлении профиля';
+const createUserErrorText = 'Переданы некорректные данные при создании пользователя.';
+const logOutMessage = 'Выход осуществлен';
 
 module.exports = {
-  errorMessages,
-  serverMessages,
+  notFoundErrorText,
+  unauthorizedErrorText,
+  incorrectData,
+  castErrorText,
+  validationErrorText,
+  notFoundMovieText,
+  forbiddenMovieText,
+  conflictErrorText,
+  userIdErrorText,
+  notFoundUserIdText,
+  updateUserErrorText,
+  createUserErrorText,
+  logOutMessage,
 };

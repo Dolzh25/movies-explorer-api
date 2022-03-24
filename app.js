@@ -1,54 +1,47 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const helmet = require('helmet');
+require('dotenv').config();
 const { errors } = require('celebrate');
-const router = require('./routes/index');
-const errorHandler = require('./middlewares/error');
+const cors = require('cors');
+const helmet = require('helmet');
+const routes = require('./routes');
+const errorsMiddlewares = require('./middlewares/errors-middlewares');
+const options = require('./middlewares/options');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const NotFoundError = require('./errors/notFoundError');
 const limiter = require('./middlewares/limiter');
-const config = require('./utils/config');
-const { errorMessages } = require('./utils/constants');
+const { DATABASE } = require('./utils/config');
+
+const { NODE_ENV, NSQL } = process.env;
+
+const { PORT = 3001 } = process.env;
 
 const app = express();
 
-const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://dolzh-movies.nomoredomains.rocks',
-    'https://dolzh-movies.nomoredomains.rocks',
-  ],
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  allowedHeaders: ['Content-Type', 'origin', 'Authorization', 'Accept'],
-  credentials: true,
-};
-
-mongoose.connect(config.mongo_dsn);
-
-app.use('*', cors(corsOptions));
 app.use(helmet());
+
+mongoose.connect(NODE_ENV === 'production' ? NSQL : DATABASE, {
+  useNewUrlParser: true,
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(bodyParser.json());
 
 app.use(requestLogger);
 
-app.post(limiter);
-app.use(router);
+app.use(limiter);
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use('*', cors(options));
 
-app.use((req, res, next) => {
-  next(new NotFoundError(errorMessages.notFoundRouteErrorMessage));
-});
+app.use(routes);
 
 app.use(errorLogger);
-app.use(errors());
-app.use(errorHandler);
 
-app.listen(config.port);
+app.use(errors());
+
+app.use(errorsMiddlewares);
+
+app.listen(PORT, () => {
+  console.log(`App listening on port ${PORT}`);
+});

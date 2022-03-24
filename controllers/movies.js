@@ -1,16 +1,15 @@
 const Movie = require('../models/movie');
-const ForbiddenError = require('../errors/forbiddenError');
-const NotFoundError = require('../errors/notFoundError');
-const BadRequestError = require('../errors/badRequestError');
-const { errorMessages, serverMessages } = require('../utils/constants');
+const NotFoundError = require('../errors/not-found-err');
+const ValidationError = require('../errors/validation-err');
+const ForbiddenError = require('../errors/forbidden-err');
+const {
+  castErrorText,
+  validationErrorText,
+  notFoundMovieText,
+  forbiddenMovieText,
+} = require('../utils/constants');
 
-const getAllMovies = (req, res, next) => {
-  Movie.find({})
-    .then((movies) => res.send(movies))
-    .catch(next);
-};
-
-const addMovieToFavorite = (req, res, next) => {
+module.exports.createMovie = (req, res, next) => {
   const {
     country,
     director,
@@ -18,15 +17,12 @@ const addMovieToFavorite = (req, res, next) => {
     year,
     description,
     image,
-    thumbnail,
     trailer,
+    thumbnail,
     movieId,
     nameRU,
     nameEN,
   } = req.body;
-
-  const owner = req.user;
-
   Movie.create({
     country,
     director,
@@ -34,52 +30,44 @@ const addMovieToFavorite = (req, res, next) => {
     year,
     description,
     image,
-    thumbnail,
     trailer,
-    owner,
+    thumbnail,
     movieId,
     nameRU,
     nameEN,
+    owner: req.user._id,
   })
-    .then((movie) => res.send(movie))
+    .then((movie) => res.status(200).send({ data: movie }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError(errorMessages.validationUrlErrorMessage);
+        next(new ValidationError(validationErrorText));
       }
       next(err);
-    })
+    });
+};
+
+module.exports.getMovies = (req, res, next) => {
+  Movie.find({ owner: req.user._id })
+    .then((movies) => res.send({ data: movies }))
     .catch(next);
 };
 
-const removeMovieFromFavorite = (req, res, next) => {
-  const { movieId } = req.params;
-
-  Movie.findOne({
-    owner: req.user._id,
-    movieId,
-  })
+module.exports.deleteMovie = (req, res, next) => {
+  Movie.findById(req.params.movieId)
     .then((movie) => {
       if (!movie) {
-        next(new NotFoundError(errorMessages.notFoundErrorDBMessage));
-        return;
+        throw new NotFoundError(notFoundMovieText);
       }
-      if (movie.owner.toString() !== req.user._id) {
-        next(new ForbiddenError(errorMessages.forbiddenErrorMessage));
-      } else {
-        Movie.deleteOne(movie)
-          .then(() => {
-            res.send({
-              message: serverMessages.removeMovieSuccess,
-            });
-          })
-          .catch(next);
+      if (movie.owner.toString() === req.user._id) {
+        return Movie.deleteOne(movie)
+          .then(() => res.send({ data: movie }));
       }
+      throw new ForbiddenError(forbiddenMovieText);
     })
-    .catch(next);
-};
-
-module.exports = {
-  getAllMovies,
-  addMovieToFavorite,
-  removeMovieFromFavorite,
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError(castErrorText));
+      }
+      next(err);
+    });
 };
