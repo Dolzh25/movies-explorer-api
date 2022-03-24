@@ -28,18 +28,17 @@ const corsOptions = {
 
 mongoose.connect(config.mongo_dsn);
 
+app.use(helmet());
+app.use(cookieParser());
+app.use(bodyParser.json());
+
 app.use(requestLogger);
 app.use(cors(corsOptions));
 
 app.post(limiter);
-
-app.use(helmet());
-app.use(cookieParser());
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(router);
+
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   next(new NotFoundError(errorMessages.notFoundRouteErrorMessage));
