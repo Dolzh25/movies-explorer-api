@@ -21,8 +21,13 @@ const corsOptions = {
     'http://localhost:3000',
     'http://dolzh-movies.nomoredomains.rocks',
     'https://dolzh-movies.nomoredomains.rocks',
+    'http://api.dolzh-movies.nomoredomains.rocks',
+    'https://api.dolzh-movies.nomoredomains.rocks',
   ],
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  allowedHeaders: ['Content-Type', 'origin', 'Authorization'],
   credentials: true,
 };
 
@@ -33,12 +38,12 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 
 app.use(requestLogger);
-app.use(cors(corsOptions));
+app.use('*', cors(corsOptions));
 
 app.post(limiter);
 app.use(router);
 
-// app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   next(new NotFoundError(errorMessages.notFoundRouteErrorMessage));
