@@ -15,9 +15,9 @@ router.use('/signin', validateLogin, login);
 
 router.use(auth);
 
-router.delete('/signout', auth, signOut);
-router.get('/check-auth', auth, checkAuth);
-router.use('/users', auth, userRouters);
-router.use('/movies', auth, moviesRouters);
+router.delete('/signout', signOut);
+router.get('/check-auth', checkAuth);
+router.use('/users', userRouters);
+router.use('/movies', moviesRouters);
 
 module.exports = router;
