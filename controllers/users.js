@@ -59,6 +59,10 @@ const login = (req, res, next) => {
     });
 };
 
+const checkAuth = (req, res) => {
+  res.send({ message: 'authorization success' });
+};
+
 const signOut = (req, res) => {
   res.clearCookie('jwt').send({ message: 'Пользователь неавторизован' });
 };
@@ -110,6 +114,7 @@ module.exports = {
   createUser,
   login,
   signOut,
+  checkAuth,
   getUserInfo,
   updateUserInfo,
 };
