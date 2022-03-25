@@ -5,7 +5,7 @@ const BadRequestError = require('../errors/badRequestError');
 const { errorMessages, serverMessages } = require('../utils/constants');
 
 const getAllMovies = (req, res, next) => {
-  Movie.find({})
+  Movie.find({ owner: req.user._id })
     .then((movies) => res.send(movies))
     .catch(next);
 };
@@ -25,7 +25,7 @@ const addMovieToFavorite = (req, res, next) => {
     nameEN,
   } = req.body;
 
-  const owner = req.user;
+  const owner = req.user._id;
 
   Movie.create({
     country,
