@@ -50,7 +50,7 @@ const login = (req, res, next) => {
       res.cookie('jwt', token, {
         maxAge: 3600000 * 72,
         httpOnly: true,
-        sameSite: 'Lax',
+        sameSite: 'none',
       })
         .send({ message: 'Пользователь авторизован' });
     })
